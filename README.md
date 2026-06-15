@@ -47,7 +47,7 @@ Copy `.env.example` to `.env` for local development and set real values locally.
 | `BOOKSCOPE_HF_PROVIDER` | Optional Hugging Face inference provider name. |
 | `BOOKSCOPE_GRADIO_SPACE` | Optional Hugging Face Space name when the model is exposed through a Gradio demo. |
 | `BOOKSCOPE_GRADIO_API_NAME` | Gradio API endpoint name, usually `/predict` until inspected. |
-| `BOOKSCOPE_GRADIO_INPUT_ORDER` | Space call shape: `image_prompt`, `prompt_image`, or `image`. |
+| `BOOKSCOPE_GRADIO_INPUT_ORDER` | Space call shape: `minicpm_v46`, `image_prompt`, `prompt_image`, or `image`. |
 | `BOOKSCOPE_DEMO_MODE` | Set to `false` to force live model calls. Defaults to demo mode when model config is missing. |
 
 ## Privacy Boundary

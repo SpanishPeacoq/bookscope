@@ -187,9 +187,23 @@ def _call_hf_gradio_space(image: Image.Image) -> str:
         image.convert("RGB").save(temp_file, format="JPEG", quality=88)
 
     try:
-        client = Client(space, hf_token=token)
+        client = Client(space, token=token)
         image_file = handle_file(temp_path)
-        if input_order == "prompt_image":
+        if input_order == "minicpm_v46":
+            result = client.predict(
+                message=VISION_PROMPT,
+                history=None,
+                files=[image_file],
+                thinking_mode=False,
+                max_new_tokens=1200,
+                temperature=0.1,
+                top_p=0.8,
+                top_k=100,
+                max_frames=64,
+                generation_mode="Sampling",
+                api_name=api_name,
+            )
+        elif input_order == "prompt_image":
             result = client.predict(VISION_PROMPT, image_file, api_name=api_name)
         elif input_order == "image":
             result = client.predict(image_file, api_name=api_name)
