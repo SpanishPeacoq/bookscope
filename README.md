@@ -25,7 +25,7 @@ The first working loop is intentionally small:
 3. Enrich the rows with public book metadata from Open Library.
 4. Keep structured inventory rows, not raw shelf photos, by default.
 
-The vision model is provider-swappable. The app runs in demo mode without secrets, then calls a configured Hugging Face-hosted MiniCPM-V model when `HF_TOKEN` and `BOOKSCOPE_HF_MODEL` are set.
+The vision model is provider-swappable. The app runs in demo mode without secrets, then calls either a configured Hugging Face-hosted MiniCPM-V model or a MiniCPM-V Gradio Space endpoint.
 
 ## Quick Start
 
@@ -45,6 +45,9 @@ Copy `.env.example` to `.env` for local development and set real values locally.
 | `HF_TOKEN` | Hugging Face token for the selected hosted model/provider. |
 | `BOOKSCOPE_HF_MODEL` | Model or endpoint identifier used by `huggingface_hub.InferenceClient`. |
 | `BOOKSCOPE_HF_PROVIDER` | Optional Hugging Face inference provider name. |
+| `BOOKSCOPE_GRADIO_SPACE` | Optional Hugging Face Space name when the model is exposed through a Gradio demo. |
+| `BOOKSCOPE_GRADIO_API_NAME` | Gradio API endpoint name, usually `/predict` until inspected. |
+| `BOOKSCOPE_GRADIO_INPUT_ORDER` | Space call shape: `image_prompt`, `prompt_image`, or `image`. |
 | `BOOKSCOPE_DEMO_MODE` | Set to `false` to force live model calls. Defaults to demo mode when model config is missing. |
 
 ## Privacy Boundary
@@ -74,4 +77,4 @@ The initial Gradio MVP was built with OpenAI Codex as an implementation collabor
 
 ## Status
 
-Current status: runnable Gradio MVP with demo scan rows, provider hook for Hugging Face vision inference, and Open Library enrichment.
+Current status: runnable Gradio MVP with demo scan rows, provider hooks for Hugging Face vision inference or Gradio Space inference, and Open Library enrichment.

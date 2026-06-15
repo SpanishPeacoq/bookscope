@@ -3,6 +3,7 @@ import io
 import json
 import os
 import re
+import tempfile
 from typing import Any
 
 import pandas as pd
@@ -115,17 +116,22 @@ def _demo_mode_enabled() -> bool:
     value = os.getenv("BOOKSCOPE_DEMO_MODE", "").strip().lower()
     if value in {"0", "false", "no", "off"}:
         return False
-    return not (os.getenv("HF_TOKEN") and os.getenv("BOOKSCOPE_HF_MODEL"))
+    has_inference_model = bool(os.getenv("HF_TOKEN") and os.getenv("BOOKSCOPE_HF_MODEL"))
+    has_gradio_space = bool(os.getenv("BOOKSCOPE_GRADIO_SPACE"))
+    return not (has_inference_model or has_gradio_space)
 
 
 def _demo_status() -> str:
     return (
-        "Demo mode is active. Add HF_TOKEN and BOOKSCOPE_HF_MODEL, "
-        "then set BOOKSCOPE_DEMO_MODE=false for live MiniCPM-V scans."
+        "Demo mode is active. Add either HF_TOKEN + BOOKSCOPE_HF_MODEL or "
+        "BOOKSCOPE_GRADIO_SPACE, then set BOOKSCOPE_DEMO_MODE=false for live MiniCPM-V scans."
     )
 
 
 def _call_hf_vision_model(image: Image.Image) -> str:
+    if os.getenv("BOOKSCOPE_GRADIO_SPACE"):
+        return _call_hf_gradio_space(image)
+
     token = os.environ["HF_TOKEN"]
     model = os.environ["BOOKSCOPE_HF_MODEL"]
     provider = os.getenv("BOOKSCOPE_HF_PROVIDER") or None
@@ -166,6 +172,36 @@ def _call_hf_vision_model(image: Image.Image) -> str:
         )
 
     return _response_content(response)
+
+
+def _call_hf_gradio_space(image: Image.Image) -> str:
+    from gradio_client import Client, handle_file
+
+    space = os.environ["BOOKSCOPE_GRADIO_SPACE"]
+    api_name = os.getenv("BOOKSCOPE_GRADIO_API_NAME", "/predict")
+    input_order = os.getenv("BOOKSCOPE_GRADIO_INPUT_ORDER", "image_prompt").strip().lower()
+    token = os.getenv("HF_TOKEN") or None
+
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
+        temp_path = temp_file.name
+        image.convert("RGB").save(temp_file, format="JPEG", quality=88)
+
+    try:
+        client = Client(space, hf_token=token)
+        image_file = handle_file(temp_path)
+        if input_order == "prompt_image":
+            result = client.predict(VISION_PROMPT, image_file, api_name=api_name)
+        elif input_order == "image":
+            result = client.predict(image_file, api_name=api_name)
+        else:
+            result = client.predict(image_file, VISION_PROMPT, api_name=api_name)
+    finally:
+        try:
+            os.unlink(temp_path)
+        except OSError:
+            pass
+
+    return _response_content(result)
 
 
 def _response_content(response: Any) -> str:
