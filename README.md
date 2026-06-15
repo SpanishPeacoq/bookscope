@@ -58,9 +58,13 @@ Current image handling:
 
 - Gradio receives the uploaded image for the current browser session.
 - Bookscope converts it to an in-memory PIL image for scanning.
+- Bookscope downsizes very large images before model calls to keep inference responsive.
 - When calling the MiniCPM-V Gradio Space, Bookscope writes a temporary JPEG only long enough to send the request, then deletes that temporary file.
+- Live MiniCPM-V mode sends the shelf image to the external `openbmb/MiniCPM-V-4.6-Demo` Space on Hugging Face. Bookscope controls its own temporary files, but it cannot control retention or logging inside that upstream public Space.
 - The repo ignores local image and video files by default so test shelf photos do not enter Git.
 - A future scan-session feature may optionally save thumbnails only when the user asks for audit/debug history.
+
+For sensitive/private shelves, run Bookscope against a model endpoint you control instead of the public demo Space.
 
 ## Project Structure
 

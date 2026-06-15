@@ -16,7 +16,7 @@ The repository contains a Gradio application intended for deployment as a Huggin
 | --- | --- | --- |
 | `app.py` | Gradio UI and event wiring | Hugging Face Space entrypoint |
 | `bookscope.py` | Scan normalization, model-provider call, JSON parsing, metadata enrichment | Keeps UI thin and provider-swappable |
-| Hugging Face vision provider | Extracts visible book spines from images | Configured with `HF_TOKEN` and `BOOKSCOPE_HF_MODEL`; demo mode is default without secrets |
+| Hugging Face vision provider | Extracts visible book spines from images | Defaults to `openbmb/MiniCPM-V-4.6-Demo`; set `BOOKSCOPE_DEMO_MODE=true` for offline sample rows |
 | Open Library | Enriches candidate rows with ISBN, author, year, publisher, subjects, and links | Public HTTP lookup |
 | Documentation baseline | Records setup, architecture, contribution, and security expectations | Present |
 | Tests | Automated verification | Not added yet |
@@ -36,7 +36,7 @@ Shelf image
 
 - External services: optional Hugging Face inference provider and Open Library search API.
 - Databases: none defined yet.
-- File system: repository files only; uploaded images are not persisted by the app.
+- File system: repository files only; uploaded images are not persisted by the app. Temporary JPEGs are created for external Space calls and deleted after each request.
 - Network calls: vision inference and metadata enrichment.
 - User input: shelf images and editable table rows in the Gradio session.
 

@@ -56,6 +56,7 @@ Rules:
 """
 
 DEFAULT_MINICPM_SPACE = "openbmb/MiniCPM-V-4.6-Demo"
+MAX_IMAGE_DIMENSION = 1600
 
 DEMO_RECORDS = [
     {
@@ -85,21 +86,17 @@ def scan_shelf_image(image: Image.Image | None) -> tuple[pd.DataFrame, str]:
     try:
         raw_response = _call_hf_vision_model(image)
         records = _parse_books(raw_response)
-    except Exception as exc:  # pragma: no cover - provider failures depend on remote APIs
-        records = []
-        raw_response = ""
-        provider_error = str(exc)
-    else:
-        provider_error = ""
+    except Exception:  # pragma: no cover - provider failures depend on remote APIs
+        return _empty_scan_frame(), (
+            "Live scan failed before Bookscope could extract shelf rows. "
+            "Try a tighter crop or retry in a moment."
+        )
 
     if not records:
-        fallback = pd.DataFrame(DEMO_RECORDS, columns=SCAN_COLUMNS)
-        status = "Live scan did not return parseable books."
-        if provider_error:
-            status = f"{status} Provider error: {provider_error}"
-        elif raw_response:
-            status = f"{status} Raw response was not valid Bookscope JSON."
-        return fallback, status
+        return _empty_scan_frame(), (
+            "Live scan returned no parseable book rows. "
+            "Try cropping to one shelf section or improving lighting."
+        )
 
     return pd.DataFrame(records, columns=SCAN_COLUMNS), f"Found {len(records)} visible book candidates."
 
@@ -133,7 +130,7 @@ def _demo_status() -> str:
 
 
 def _call_hf_vision_model(image: Image.Image) -> str:
-    if os.getenv("BOOKSCOPE_GRADIO_SPACE"):
+    if _should_use_gradio_space():
         return _call_hf_gradio_space(image)
 
     token = os.environ["HF_TOKEN"]
@@ -188,7 +185,7 @@ def _call_hf_gradio_space(image: Image.Image) -> str:
 
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
         temp_path = temp_file.name
-        image.convert("RGB").save(temp_file, format="JPEG", quality=88)
+        _prepare_image(image).save(temp_file, format="JPEG", quality=88)
 
     try:
         client = Client(space, token=token)
@@ -226,6 +223,12 @@ def _gradio_space_id() -> str:
     return os.getenv("BOOKSCOPE_GRADIO_SPACE", DEFAULT_MINICPM_SPACE).strip()
 
 
+def _should_use_gradio_space() -> bool:
+    if os.getenv("BOOKSCOPE_GRADIO_SPACE") is not None:
+        return bool(_gradio_space_id())
+    return not bool(os.getenv("BOOKSCOPE_HF_MODEL"))
+
+
 def _response_content(response: Any) -> str:
     if isinstance(response, str):
         return response
@@ -246,9 +249,16 @@ def _response_content(response: Any) -> str:
 
 def _image_to_data_url(image: Image.Image) -> str:
     buffer = io.BytesIO()
-    image.convert("RGB").save(buffer, format="JPEG", quality=88)
+    _prepare_image(image).save(buffer, format="JPEG", quality=88)
     encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
     return f"data:image/jpeg;base64,{encoded}"
+
+
+def _prepare_image(image: Image.Image) -> Image.Image:
+    prepared = image.convert("RGB")
+    if max(prepared.size) > MAX_IMAGE_DIMENSION:
+        prepared.thumbnail((MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION))
+    return prepared
 
 
 def _parse_books(raw_response: str) -> list[dict[str, Any]]:
@@ -376,7 +386,10 @@ def _open_library_match(title: str, author: str) -> dict[str, Any] | None:
         timeout=8,
     )
     response.raise_for_status()
-    docs = response.json().get("docs", [])
+    try:
+        docs = response.json().get("docs", [])
+    except ValueError:
+        return None
     if not docs:
         return None
     return next((doc for doc in docs if doc.get("isbn")), docs[0])
@@ -395,7 +408,12 @@ def _isbn_from_editions(work_key: Any) -> str:
     except requests.RequestException:
         return ""
 
-    for edition in response.json().get("entries", []):
+    try:
+        entries = response.json().get("entries", [])
+    except ValueError:
+        return ""
+
+    for edition in entries:
         isbn = _first(edition.get("isbn_13")) or _first(edition.get("isbn_10"))
         if isbn:
             return isbn
