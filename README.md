@@ -20,7 +20,7 @@ Bookscope turns messy shelf photos into a searchable used-book inventory. It is 
 
 ## Submission Links
 
-- App: https://huggingface.co/spaces/SpanishPeacoq/Bookscope
+- App: https://huggingface.co/spaces/build-small-hackathon/bookscope
 - Demo video: TODO: add public demo video URL before the deadline
 - Social post: TODO: add public social post URL before the deadline
 - GitHub PR with Codex-attributed commits: https://github.com/SpanishPeacoq/bookscope/pull/1
