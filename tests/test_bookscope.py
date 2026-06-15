@@ -50,6 +50,12 @@ class ScanFlowTests(EnvMixin, unittest.TestCase):
 
         gradio.assert_called_once()
 
+    def test_empty_gradio_space_env_still_uses_default_space(self):
+        os.environ["BOOKSCOPE_GRADIO_SPACE"] = ""
+
+        self.assertEqual(bookscope._gradio_space_id(), bookscope.DEFAULT_MINICPM_SPACE)
+        self.assertTrue(bookscope._should_use_gradio_space())
+
     def test_explicit_hf_model_uses_inference_provider_path(self):
         os.environ["HF_TOKEN"] = "token"
         os.environ["BOOKSCOPE_HF_MODEL"] = "provider/model"

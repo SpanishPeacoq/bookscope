@@ -220,12 +220,12 @@ def _call_hf_gradio_space(image: Image.Image) -> str:
 
 
 def _gradio_space_id() -> str:
-    return os.getenv("BOOKSCOPE_GRADIO_SPACE", DEFAULT_MINICPM_SPACE).strip()
+    return os.getenv("BOOKSCOPE_GRADIO_SPACE", "").strip() or DEFAULT_MINICPM_SPACE
 
 
 def _should_use_gradio_space() -> bool:
-    if os.getenv("BOOKSCOPE_GRADIO_SPACE") is not None:
-        return bool(_gradio_space_id())
+    if os.getenv("BOOKSCOPE_GRADIO_SPACE", "").strip():
+        return True
     return not bool(os.getenv("BOOKSCOPE_HF_MODEL"))
 
 
