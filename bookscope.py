@@ -48,10 +48,16 @@ Return only valid JSON in this shape:
 }
 
 Rules:
+- Work shelf-by-shelf from top to bottom, and left-to-right within each shelf.
+- Treat every distinct spine or front-facing stack cover as a separate candidate book.
+- First read the exact visible spine text, then infer the most likely title/author.
+- Do not merge neighboring books into one row.
+- Do not skip short, high-contrast titles. Titles like "BAD BLOOD", "MELLON", or "ENDURANCE" are valid complete title guesses when clearly visible.
 - Read upside-down, rotated, partial, and low-contrast spines when possible.
 - Use Unknown for missing authors.
 - Confidence must be between 0 and 1.
-- Include uncertain but plausible books rather than hiding them.
+- Include uncertain but plausible books rather than hiding them; mark the uncertainty in notes.
+- If only part of a title is visible, keep the visible words in the title field and explain the missing part in notes.
 - Do not invent books that are not visible.
 """
 
