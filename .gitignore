@@ -15,6 +15,17 @@ tmp/
 temp/
 .cache/
 
+# Local scan media
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.heic
+*.mp4
+captures/
+scans/
+uploads/
+
 # Python
 __pycache__/
 *.py[cod]

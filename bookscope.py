@@ -55,6 +55,8 @@ Rules:
 - Do not invent books that are not visible.
 """
 
+DEFAULT_MINICPM_SPACE = "openbmb/MiniCPM-V-4.6-Demo"
+
 DEMO_RECORDS = [
     {
         "title": "The Guns of August",
@@ -114,10 +116,12 @@ def enrich_books(table: Any) -> tuple[pd.DataFrame, str]:
 
 def _demo_mode_enabled() -> bool:
     value = os.getenv("BOOKSCOPE_DEMO_MODE", "").strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
     if value in {"0", "false", "no", "off"}:
         return False
     has_inference_model = bool(os.getenv("HF_TOKEN") and os.getenv("BOOKSCOPE_HF_MODEL"))
-    has_gradio_space = bool(os.getenv("BOOKSCOPE_GRADIO_SPACE"))
+    has_gradio_space = bool(_gradio_space_id())
     return not (has_inference_model or has_gradio_space)
 
 
@@ -177,9 +181,9 @@ def _call_hf_vision_model(image: Image.Image) -> str:
 def _call_hf_gradio_space(image: Image.Image) -> str:
     from gradio_client import Client, handle_file
 
-    space = os.environ["BOOKSCOPE_GRADIO_SPACE"]
+    space = _gradio_space_id()
     api_name = os.getenv("BOOKSCOPE_GRADIO_API_NAME", "/predict")
-    input_order = os.getenv("BOOKSCOPE_GRADIO_INPUT_ORDER", "image_prompt").strip().lower()
+    input_order = os.getenv("BOOKSCOPE_GRADIO_INPUT_ORDER", "minicpm_v46").strip().lower()
     token = os.getenv("HF_TOKEN") or None
 
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
@@ -216,6 +220,10 @@ def _call_hf_gradio_space(image: Image.Image) -> str:
             pass
 
     return _response_content(result)
+
+
+def _gradio_space_id() -> str:
+    return os.getenv("BOOKSCOPE_GRADIO_SPACE", DEFAULT_MINICPM_SPACE).strip()
 
 
 def _response_content(response: Any) -> str:

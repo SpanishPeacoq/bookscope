@@ -25,7 +25,7 @@ The first working loop is intentionally small:
 3. Enrich the rows with public book metadata from Open Library.
 4. Keep structured inventory rows, not raw shelf photos, by default.
 
-The vision model is provider-swappable. The app runs in demo mode without secrets, then calls either a configured Hugging Face-hosted MiniCPM-V model or a MiniCPM-V Gradio Space endpoint.
+The vision model is provider-swappable. In deployed mode, Bookscope defaults to the public `openbmb/MiniCPM-V-4.6-Demo` Space. For offline/local UI work, set `BOOKSCOPE_DEMO_MODE=true` to use built-in sample rows.
 
 ## Quick Start
 
@@ -45,14 +45,22 @@ Copy `.env.example` to `.env` for local development and set real values locally.
 | `HF_TOKEN` | Hugging Face token for the selected hosted model/provider. |
 | `BOOKSCOPE_HF_MODEL` | Model or endpoint identifier used by `huggingface_hub.InferenceClient`. |
 | `BOOKSCOPE_HF_PROVIDER` | Optional Hugging Face inference provider name. |
-| `BOOKSCOPE_GRADIO_SPACE` | Optional Hugging Face Space name when the model is exposed through a Gradio demo. |
+| `BOOKSCOPE_GRADIO_SPACE` | Optional Hugging Face Space name when the model is exposed through a Gradio demo. Defaults to `openbmb/MiniCPM-V-4.6-Demo`. |
 | `BOOKSCOPE_GRADIO_API_NAME` | Gradio API endpoint name, usually `/predict` until inspected. |
 | `BOOKSCOPE_GRADIO_INPUT_ORDER` | Space call shape: `minicpm_v46`, `image_prompt`, `prompt_image`, or `image`. |
-| `BOOKSCOPE_DEMO_MODE` | Set to `false` to force live model calls. Defaults to demo mode when model config is missing. |
+| `BOOKSCOPE_DEMO_MODE` | Set to `true` for offline sample rows. Leave unset or set to `false` for live MiniCPM-V scans. |
 
 ## Privacy Boundary
 
-Bookscope is designed to process shelf images transiently and save structured book rows. Raw images are not persisted by the current app. A future scan-session feature may optionally save thumbnails only when the user asks for audit/debug history.
+Bookscope is designed to process shelf images transiently and save structured book rows. Raw images are not persisted by the current app.
+
+Current image handling:
+
+- Gradio receives the uploaded image for the current browser session.
+- Bookscope converts it to an in-memory PIL image for scanning.
+- When calling the MiniCPM-V Gradio Space, Bookscope writes a temporary JPEG only long enough to send the request, then deletes that temporary file.
+- The repo ignores local image and video files by default so test shelf photos do not enter Git.
+- A future scan-session feature may optionally save thumbnails only when the user asks for audit/debug history.
 
 ## Project Structure
 
