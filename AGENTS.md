@@ -25,16 +25,14 @@ Before substantial edits:
 
 ## Commands
 
-Replace these with real project commands as soon as they exist.
-
 ```bash
-# install dependencies
+pip install -r requirements.txt
 
-# run locally
+python app.py
 
-# run tests
+python -m compileall app.py bookscope.py
 
-# run lint
+# no lint command is configured yet
 ```
 
 ## Multi-Agent Coordination

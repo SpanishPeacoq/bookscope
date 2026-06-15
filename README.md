@@ -1,34 +1,63 @@
+---
+title: Bookscope
+sdk: gradio
+app_file: app.py
+pinned: false
+tags:
+  - hackathon
+  - backyard-ai
+  - vision
+  - ocr
+  - minicpm-v
+  - codex
+---
+
 # Bookscope
 
-Bookscope is an early-stage project. This repository has been initialized with a small documentation, security, and collaboration baseline so the product shape can evolve without losing decisions or setup notes.
+Bookscope turns messy shelf photos into a searchable used-book inventory. It is built for the used bookstore problem: rotated spines, partial titles, mixed categories, and shelves that are valuable but hard to browse.
+
+## Hackathon MVP
+
+The first working loop is intentionally small:
+
+1. Upload or capture a shelf photo.
+2. Extract visible book candidates into an editable table.
+3. Enrich the rows with public book metadata from Open Library.
+4. Keep structured inventory rows, not raw shelf photos, by default.
+
+The vision model is provider-swappable. The app runs in demo mode without secrets, then calls a configured Hugging Face-hosted MiniCPM-V model when `HF_TOKEN` and `BOOKSCOPE_HF_MODEL` are set.
 
 ## Quick Start
 
 ```bash
-# install dependencies
-# TODO: add once the application stack is chosen
-
-# run locally
-# TODO: add once the application entrypoint exists
-
-# run tests
-# TODO: add once test tooling exists
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
 ```
 
-## Common Commands
+Copy `.env.example` to `.env` for local development and set real values locally. Never commit secrets.
 
-| Task | Command |
+## Configuration
+
+| Variable | Purpose |
 | --- | --- |
-| Install | `TODO` |
-| Run | `TODO` |
-| Test | `TODO` |
-| Lint | `TODO` |
-| Format | `TODO` |
+| `HF_TOKEN` | Hugging Face token for the selected hosted model/provider. |
+| `BOOKSCOPE_HF_MODEL` | Model or endpoint identifier used by `huggingface_hub.InferenceClient`. |
+| `BOOKSCOPE_HF_PROVIDER` | Optional Hugging Face inference provider name. |
+| `BOOKSCOPE_DEMO_MODE` | Set to `false` to force live model calls. Defaults to demo mode when model config is missing. |
+
+## Privacy Boundary
+
+Bookscope is designed to process shelf images transiently and save structured book rows. Raw images are not persisted by the current app. A future scan-session feature may optionally save thumbnails only when the user asks for audit/debug history.
 
 ## Project Structure
 
 ```text
 .
+|-- app.py
+|-- bookscope.py
+|-- requirements.txt
 |-- README.md
 |-- AGENTS.md
 |-- CONTRIBUTING.md
@@ -36,23 +65,13 @@ Bookscope is an early-stage project. This repository has been initialized with a
 |-- docs/
 |   |-- architecture.md
 |   `-- adr/
-|-- .env.example
-|-- .gitignore
 `-- .github/
 ```
 
-## Configuration
+## Built With Codex
 
-Copy `.env.example` to `.env` for local development and fill in real values locally. Never commit secrets.
-
-## Documentation
-
-- `docs/architecture.md` explains the current system shape.
-- `docs/adr/` records important decisions and tradeoffs.
-- `AGENTS.md` tells coding agents how to work in this repo.
-- `CONTRIBUTING.md` describes how changes enter the repo safely.
-- `SECURITY.md` captures security expectations.
+The initial Gradio MVP was built with OpenAI Codex as an implementation collaborator. Commits for hackathon work should keep clear messages and include a Codex co-author trailer when appropriate.
 
 ## Status
 
-Current status: early project scaffold.
+Current status: runnable Gradio MVP with demo scan rows, provider hook for Hugging Face vision inference, and Open Library enrichment.

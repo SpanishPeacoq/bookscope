@@ -4,50 +4,58 @@ This document describes the current system shape. Keep it factual and short enou
 
 ## Purpose
 
-Bookscope is early-stage. The product purpose, primary users, and key workflows still need to be defined.
+Bookscope turns messy shelf photos into a searchable used-book inventory. The hackathon MVP focuses on a fast end-to-end loop for used bookstores and home shelf scans: image in, candidate book rows out, public metadata enrichment after review.
 
 ## Current System
 
-The repository currently contains only the project baseline: documentation, contribution rules, security expectations, and GitHub collaboration defaults.
+The repository contains a Gradio application intended for deployment as a Hugging Face Space. The current runtime supports demo-mode scan rows, a Hugging Face vision-model provider hook, and Open Library metadata enrichment.
 
 ## Components
 
 | Component | Responsibility | Notes |
 | --- | --- | --- |
+| `app.py` | Gradio UI and event wiring | Hugging Face Space entrypoint |
+| `bookscope.py` | Scan normalization, model-provider call, JSON parsing, metadata enrichment | Keeps UI thin and provider-swappable |
+| Hugging Face vision provider | Extracts visible book spines from images | Configured with `HF_TOKEN` and `BOOKSCOPE_HF_MODEL`; demo mode is default without secrets |
+| Open Library | Enriches candidate rows with ISBN, author, year, publisher, subjects, and links | Public HTTP lookup |
 | Documentation baseline | Records setup, architecture, contribution, and security expectations | Present |
-| Application code | Product implementation | Not selected yet |
-| Tests | Automated verification | Not selected yet |
+| Tests | Automated verification | Not added yet |
 
 ## Data Flow
 
-No runtime data flow exists yet.
-
 ```text
-TODO: define once application behavior exists
+Shelf image
+  -> Gradio image input
+  -> Hugging Face vision provider or demo records
+  -> normalized editable scan table
+  -> Open Library search enrichment
+  -> enriched inventory table
 ```
 
 ## Boundaries
 
-- External services: none defined yet.
+- External services: optional Hugging Face inference provider and Open Library search API.
 - Databases: none defined yet.
-- File system: repository files only.
-- Network calls: none defined yet.
-- User input: none defined yet.
+- File system: repository files only; uploaded images are not persisted by the app.
+- Network calls: vision inference and metadata enrichment.
+- User input: shelf images and editable table rows in the Gradio session.
 
 ## Runtime And Deployment
 
-No runtime, deployment target, or hosting model has been selected yet.
+Runtime is Python with Gradio. Deployment target is a Hugging Face Space with `app.py` as the entrypoint.
 
 ## Important Decisions
 
 Record durable decisions in `docs/adr/`. Link the most relevant ADRs here.
 
 - `docs/adr/0001-record-project-baseline.md`
+- `docs/adr/0002-adopt-gradio-space-mvp.md`
 
 ## Known Risks
 
-- The project stack and product requirements are not defined yet.
-- Commands in `README.md` and `AGENTS.md` are placeholders until tooling is chosen.
+- Exact hosted MiniCPM-V endpoint/provider configuration still needs verification.
+- Video support is not implemented yet; the near-term path is frame sampling that reuses the image pipeline.
+- Open Library enrichment depends on public search quality and network availability.
 
 ## Update Rule
 
